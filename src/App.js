@@ -6,8 +6,8 @@ function App() {
   return (
     <main className="App">
       <p>HELLO</p>
-      <PostsList />
       <AddPostForm />
+      <PostsList />
     </main>
   );
 }

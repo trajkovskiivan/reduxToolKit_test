@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { postAdded } from "./postsSlice";
+import { addNewPost } from "./postsSlice";
 import { selecteAllUsers } from "../users/usersSlice";
 
 const AddPostForm = () => {
@@ -9,18 +9,33 @@ const AddPostForm = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [userId, setUserId] = useState("");
+  const [addRequestStatus, setAddRequestStatus] = useState("idle");
+
+  const users = useSelector(selecteAllUsers);
 
   const onTitleChanged = (e) => setTitle(e.target.value);
   const onContentChanged = (e) => setContent(e.target.value);
   const onAuthorChanged = (e) => setUserId(e.target.value);
 
-  const users = useSelector(selecteAllUsers);
+  const canSave =
+    [title, content, userId].every(Boolean) && addRequestStatus === "idle";
+  // const canSave = Boolean(title) && Boolean(content) && Boolean(userId);
 
   const onSavePostClicked = () => {
-    if (title && content) {
-      dispatch(postAdded(title, content, userId));
-      setTitle("");
-      setContent("");
+    if (canSave) {
+      try {
+        setAddRequestStatus("pending");
+        // Redux toolkit add an unwrap function to the returned promise, and that returns a new promise that either has that action payload or it throws an error if it's the rejected action and that let's us use this try catch logic
+        dispatch(addNewPost({ title, body: content, userId })).unwrap();
+
+        setTitle("");
+        setContent("");
+        setUserId("");
+      } catch (error) {
+        console.log("Failed to save the post", error);
+      } finally {
+        setAddRequestStatus("idle");
+      }
     }
   };
 
@@ -31,8 +46,6 @@ const AddPostForm = () => {
       </option>
     );
   });
-
-  const canSave = Boolean(title) && Boolean(content) && Boolean(userId);
 
   return (
     <section>
